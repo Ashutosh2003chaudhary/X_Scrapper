@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Trends Scraper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: #1DA1F2;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .scrape-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background: #1DA1F2;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .scrape-button:hover {
+            background: #1991db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .scrape-button:active {
+            transform: translateY(0);
+        }
+
+        #results {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .trend-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .trend-item:last-child {
+            border-bottom: none;
+        }
+
+        .trend-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1DA1F2;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1DA1F2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #dc3545;
+            background: #ffe6e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Twitter Trends Scraper</h1>
+            <p>Get real-time trending topics from Twitter</p>
+        </div>
+
+        <button class="scrape-button" onclick="scrapeTrends()">
+            Scrape Trends
+        </button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function scrapeTrends() {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Fetching trending topics...</p>
+                </div>
+            `;
+
+            $.ajax({
+                url: 'http://127.0.0.1:5000/scrape',
+                method: 'GET',
+                success: function(data) {
+                    if (data.success) {
+                        let html = `
+                            <div class="timestamp">
+                                Results as of ${data.timestamp}
+                            </div>
+                        `;
+
+                        data.trends.forEach((trend, index) => {
+                            html += `
+                                <div class="trend-item">
+                                    <span class="trend-number">${index + 1}</span>
+                                    <span class="trend-text">${trend}</span>
+                                </div>
+                            `;
+                        });
+
+                        results.innerHTML = html;
+                    } else {
+                        results.innerHTML = `
+                            <div class="error">
+                                Error: ${data.message}
+                            </div>
+                        `;
+                    }
+                },
+                error: function(xhr, status, error) {
+                    results.innerHTML = `
+                        <div class="error">
+                            Request failed: ${error}
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
